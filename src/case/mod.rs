@@ -1,13 +1,12 @@
 use std::ascii::*;
 
-pub struct CamelOptions<'a> {
+pub struct CamelOptions {
     pub new_word: bool,
     pub last_char: char,
     pub first_word: bool,
     pub injectable_char: char,
     pub has_seperator: bool,
     pub inverted: bool,
-    pub convertable_string: &'a str,
 }
 
 pub fn to_case_snake_like(convertable_string: &str, replace_with: &str, case: &str) -> String {
@@ -28,12 +27,12 @@ pub fn to_case_snake_like(convertable_string: &str, replace_with: &str, case: &s
     result
 }
 
-pub fn to_case_camel_like(camel_options: CamelOptions) -> String {
+pub fn to_case_camel_like(convertable_string: &str, camel_options: CamelOptions) -> String {
     let mut new_word: bool = camel_options.new_word;
     let mut first_word: bool = camel_options.first_word;
     let mut last_char: char = camel_options.last_char;
     let mut result: String = "".to_owned();
-    for character in camel_options.convertable_string.chars() {
+    for character in convertable_string.chars() {
         if char_is_seperator(character) {
             new_word = true;
         } else if character.is_numeric() {
@@ -121,91 +120,6 @@ fn next_or_previous_char_is_lowercase(convertable_string: &str, char_with_index:
 
 fn char_is_uppercase(test_char: char) -> bool {
     test_char == test_char.to_ascii_uppercase()
-}
-
-#[macro_export]
-macro_rules! define_test_group {
-    ($module_name: ident,
-     $method: ident,
-     $is_method: ident,
-     $use_mod: ident,
-     $expected: expr,
-     $expected_plural: expr) => {
-        #[cfg(test)]
-        mod $module_name {
-            use ::cases::$use_mod::$method;
-            use ::cases::$use_mod::$is_method;
-            define_tests![
-                $method;
-                from_camel_case             => "fooBar"     => $expected,
-                from_screaming_snake_case   => "FOO_BAR"    => $expected,
-                from_kebab_case             => "foo-bar"    => $expected,
-                from_pascal_case            => "FooBar"     => $expected,
-                from_sentence_case          => "Foo bar"    => $expected,
-                from_snake_case             => "foo_bar"    => $expected,
-                from_title_case             => "Foo Bar"    => $expected,
-                from_train_case             => "Foo-Bars"   => $expected_plural
-            ];
-            define_is_tests![
-                $is_method;
-                test_is => $expected
-            ];
-            define_is_not_tests![
-                $is_method;
-                test_is_not => "fOOOOBB_-Bar"
-            ];
-            define_gated_tests![
-                $method;
-                from_class_case             => "FooBar"     => $expected,
-                from_table_case             => "foo_bars"   => $expected_plural
-            ];
-        }
-    }
-}
-
-macro_rules! define_gated_tests{
-    ($method: ident; $($test_name:ident => $to_convert:expr => $expected:expr ), *) => {
-        $(
-            #[test]
-            #[cfg(feature = "heavyweight")]
-            fn $test_name() {
-                assert_eq!($method($to_convert), $expected.to_owned())
-            }
-        )*
-    }
-}
-
-macro_rules! define_tests{
-    ($method: ident; $($test_name:ident => $to_convert:expr => $expected:expr ), *) => {
-        $(
-            #[test]
-            fn $test_name() {
-                assert_eq!($method($to_convert), $expected.to_owned())
-            }
-        )*
-    }
-}
-
-macro_rules! define_is_tests{
-    ($method: ident; $($test_name:ident => $expected:expr ), *) => {
-        $(
-            #[test]
-            fn $test_name() {
-                assert_eq!($method($expected), true)
-            }
-        )*
-    }
-}
-
-macro_rules! define_is_not_tests{
-    ($method: ident; $($test_name:ident => $expected:expr ), *) => {
-        $(
-            #[test]
-            fn $test_name() {
-                assert_eq!($method($expected), false)
-            }
-        )*
-    }
 }
 
 #[test]
