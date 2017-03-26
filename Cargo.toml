@@ -1,0 +1,4 @@
+[package]
+name = "inflection-macros"
+version = "0.0.1"
+authors = ["Josh Teeter"]
